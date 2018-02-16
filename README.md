@@ -57,39 +57,39 @@ Option 1 - Install on your machine
    - use the following request as the "body" parameter. Note that the `Loan` object has its `approved` attribute set to `false`:
 
     ```
-{
-"lookup" : "default-stateless-ksession",     
-"commands":[
-  {
-    "insert":{
-      "object":{
-        "com.redhat.demos.loandemo.Applicant":{
-          "creditScore":230,
-          "name":"Jim Whitehurst"
-        }
-      },
-      "out-identifier":"applicant"
+    {
+        "lookup":"default-stateless-ksession",
+        "commands":[
+            {
+                "insert":{
+                    "object":{
+                        "com.redhat.demos.loandemo.Applicant":{
+                            "creditScore":230,
+                            "name":"Jim Whitehurst"
+                        }
+                    },
+                    "out-identifier":"applicant"
+                }
+            },
+            {
+                "insert":{
+                    "object":{
+                        "com.redhat.demos.loandemo.Loan":{
+                            "amount":2500,
+                            "approved":false,
+                            "duration":24,
+                            "interestRate":1.5
+                        }
+                    },
+                    "out-identifier":"loan"
+                }
+            },
+            {
+                "fire-all-rules":{
+                }
+            }
+        ]
     }
-  },
-  {
-    "insert":{
-      "object":{
-        "com.redhat.demos.loandemo.Loan":{
-          "amount":2500,
-          "approved":false,
-          "duration":24,
-          "interestRate":1.5
-        }
-      },
-      "out-identifier":"loan"
-    }
-  },
-  {
-    "fire-all-rules":{
-    }
-  }
-]
-}
     ```
 
    - observe the result. The Loan Application rules have fired and determined that, based on the credit score of the application, and the amount of the loan, the loan can be approved. The `approved` attribute of the `Loan` has been set to `true`.
