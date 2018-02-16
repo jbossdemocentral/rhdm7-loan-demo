@@ -16,7 +16,7 @@ The following software is required to run this demo:
 
 Option 1 - Install on your machine
 ----------------------------------
-1. [Download and unzip.](https://github.com/jbossdemocentral/rhdm7-loan-demo/archive/master.zip)
+1. [Download and unzip.](https://github.com/jbossdemocentral/rhdm7-loan-demo/archive/master.zip) or [clone this repo](https://github.com/jbossdemocentral/rhdm7-loan-demo.git).
 
 2. Add the product ZIP files to the installs directory.
 
@@ -89,7 +89,7 @@ Option 1 - Install on your machine
             }
         ]
     }
-    
+
    - observe the result. The Loan Application rules have fired and determined that, based on the credit score of the application, and the amount of the loan, the loan can be approved. The `approved` attribute of the `Loan` has been set to `true`.
 
 13. You can change the decision table as desired, change the version of the project, and redeploy a new version to a new KIE Container (allowing you to serve multiple versions of the same rule set at the same time on the same Decision Server). You can also build a new version of the project and use the Version Configuration tab of the container definition (in the Execution Servers screen) to manage the container using the UPGRADE button to pull the new version.
