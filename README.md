@@ -56,7 +56,6 @@ Option 1 - Install on your machine
    - set "Response content type" to `application/json`
    - use the following request as the "body" parameter. Note that the `Loan` object has its `approved` attribute set to `false`:
 
-    ```
     {
         "lookup":"default-stateless-ksession",
         "commands":[
@@ -90,8 +89,7 @@ Option 1 - Install on your machine
             }
         ]
     }
-    ```
-
+    
    - observe the result. The Loan Application rules have fired and determined that, based on the credit score of the application, and the amount of the loan, the loan can be approved. The `approved` attribute of the `Loan` has been set to `true`.
 
 13. You can change the decision table as desired, change the version of the project, and redeploy a new version to a new KIE Container (allowing you to serve multiple versions of the same rule set at the same time on the same Decision Server). You can also build a new version of the project and use the Version Configuration tab of the container definition (in the Execution Servers screen) to manage the container using the UPGRADE button to pull the new version.
