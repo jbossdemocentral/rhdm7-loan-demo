@@ -62,7 +62,7 @@ Option 1 - Install on your machine
             {
                 "insert":{
                     "object":{
-                        "com.redhat.demos.loandemo.Applicant":{
+                        "com.redhat.demos.dm.loan.model.Applicant":{
                             "creditScore":230,
                             "name":"Jim Whitehurst"
                         }
@@ -73,7 +73,7 @@ Option 1 - Install on your machine
             {
                 "insert":{
                     "object":{
-                        "com.redhat.demos.loandemo.Loan":{
+                        "com.redhat.demos.dm.loan.model.Loan":{
                             "amount":2500,
                             "approved":false,
                             "duration":24,
@@ -130,7 +130,7 @@ This installation option will install the Decision Manager 7 and Decision Servic
 
 8. Click on "Import project". Enter the following as the repository URL: https://github.com/jbossdemocentral/rhdm7-loan-demo-repo.git , and click on "Import".
 
-9. Select "loan-application" and "Ok" button on the right-hand side of the screen.
+9. Select "loan-application" and click on the "Ok" button on the right-hand side of the screen.
 
 10. The project has simple data model (Loan & Applicant) and single decision table (loan-application) which contains the loan approval rule set.
 
