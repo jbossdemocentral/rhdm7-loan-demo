@@ -7,7 +7,8 @@ function echo_header() {
   echo "########################################################################"
 }
 
-PRJ_DEMO_NAME=$(./support/openshift/provision.sh info rhdm7-loan | awk '/Project name/{print $3}')
+PRJ_DEMO="rhdm7-loan"
+PRJ_DEMO_NAME=$(./support/openshift/provision.sh info $PRJ_DEMO | awk '/Project name/{print $3}')
 
 # Check if the project exists
 oc get project $PRJ_DEMO_NAME > /dev/null 2>&1
@@ -15,7 +16,7 @@ PRJ_EXISTS=$?
 
 if [ $PRJ_EXISTS -eq 0 ]; then
    echo_header "RHDM7 Loan Demo project already exists. Deleting project."
-   ./support/openshift/provision.sh delete rhdm7-loan
+   ./support/openshift/provision.sh delete $PRJ_DEMO
    # Wait until the project has been removed
    echo_header "Waiting for OpenShift to clean deleted project."
    sleep 10
@@ -27,5 +28,5 @@ else if [ ! $PRJ_EXISTS -eq 1 ]; then
 fi
 
 echo_header "Provisioning Red Hat Decision Manager 7 Loan Demo."
-./support/openshift/provision.sh setup rhdm7-loan --with-imagestreams
+./support/openshift/provision.sh setup $PRJ_DEMO --with-imagestreams
 echo_header "Setup completed."
