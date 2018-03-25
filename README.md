@@ -20,7 +20,7 @@ Option 1 - Install on your machine
 
 2. Add the product ZIP files to the installs directory.
 
-3. Run `init.sh` (Linux/macOS) or `init.ps1` (Windows) file.
+3. Run the `init.sh` (Linux/macOS) or `init.ps1` (Windows) file.
 
 4. Start Red Hat Decision Manager by running `./target/jboss-eap-7.1/bin/standalone.sh` (Linux/macOS) or `.\targer\jboss-eap-7.1\bin\standalone.ps1` (Windows).
 
@@ -113,7 +113,7 @@ This installation option will install the Decision Manager 7 and Decision Servic
 
 1. [Download and unzip.](https://github.com/jbossdemocentral/rhdm7-loan-demo/archive/master.zip) or [clone this repo](https://github.com/jbossdemocentral/rhdm7-loan-demo.git).
 
-2. Run the "init-openshift.sh" file (for Linux and macOS, Windows support will be added in the near future). This will create a new project and application in OpenShift.
+2. Run the `init-openshift.sh` (Linux/macOS) or `init-openshift.ps1` (Windows) file. This will create a new project and application in OpenShift.
 
 3. Login to your OpenShift console. For a local OpenShift installation this is usually: https://{host}:8443/console
 
