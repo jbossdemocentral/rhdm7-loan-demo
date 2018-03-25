@@ -22,7 +22,7 @@ Option 1 - Install on your machine
 
 3. Run `init.sh` (Linux/macOS) or `init.ps1` (Windows) file.
 
-4. Start Red Hat Decision Manager by running `./target/jboss-eap-7.1/bin/standalone.sh`
+4. Start Red Hat Decision Manager by running `./target/jboss-eap-7.1/bin/standalone.sh` (Linux/macOS) or `.\targer\jboss-eap-7.1\bin\standalone.ps1` (Windows).
 
 5. Login to http://localhost:8080/decision-central
 
