@@ -33,9 +33,9 @@ Option 1 - Install on your machine
 
 7. The project has simple data model (Loan & Applicant) and single decision table (loan-application) which contains the loan approval rule set.
 
-8. Build and deploy version 1.0.0 of the project. Click on the "Build and Deploy" in the upper right corner.
+8. Build and deploy version 1.1.0 of the project. Click on the "Build and Deploy" in the upper right corner.
 
-9. Go to "Menu -> Deploy -> Execution Servers" repository to see the loan-application_1.0.0 KIE Container deployed on the Decision Server.
+9. Go to "Menu -> Deploy -> Execution Servers" repository to see the loan-application_1.1.0 KIE Container deployed on the Decision Server.
 
 10. The Decision Server provides a Swagger UI that documents the full RESTful interface exposed by the server at: http://localhost:8080/kie-server/docs
 
@@ -51,44 +51,52 @@ Option 1 - Install on your machine
    - navigate to "Rules evalutation :: BRM"
    - expand the "POST" operation for resource "/server/containers/instances/{id}"
    - click on "Try it out"
-   - set the "id" parameter to the name of the KIE Container that hosts our rules, in this case `loan-application_1.0.0`.
+   - set the "id" parameter to the name of the KIE Container that hosts our rules, in this case `loan-application_1.1.0`.
    - set "Parameter content type" to `application/json`.
    - set "Response content type" to `application/json`
    - use the following request as the "body" parameter. Note that the `Loan` object has its `approved` attribute set to `false`:
 
     {
-        "lookup":"default-stateless-ksession",
-        "commands":[
-            {
-                "insert":{
-                    "object":{
-                        "com.redhat.demos.dm.loan.model.Applicant":{
-                            "creditScore":230,
-                            "name":"Jim Whitehurst"
-                        }
+            "lookup": "default-stateless-ksession",
+            "commands": [
+                    {
+                            "insert": {
+                                    "object": {
+                                            "com.redhat.demos.dm.loan.model.Applicant": {
+                                                    "creditScore": 230,
+                                                    "name": "Jim Whitehurst"
+                                            }
+                                    },
+                                    "out-identifier": "applicant"
+                            }
                     },
-                    "out-identifier":"applicant"
-                }
-            },
-            {
-                "insert":{
-                    "object":{
-                        "com.redhat.demos.dm.loan.model.Loan":{
-                            "amount":2500,
-                            "approved":false,
-                            "duration":24,
-                            "interestRate":1.5
-                        }
+                    {
+                            "insert": {
+                                    "object": {
+                                            "com.redhat.demos.dm.loan.model.Loan": {
+                                                    "amount": 2500,
+                                                    "approved": false,
+                                                    "duration": 24,
+                                                    "interestRate": 1.5
+                                            }
+                                    },
+                                    "out-identifier": "loan"
+                            }
                     },
-                    "out-identifier":"loan"
-                }
-            },
-            {
-                "fire-all-rules":{
-                }
-            }
-        ]
+                    {
+                            "fire-all-rules": {}
+                    },
+                    {
+                            "get-objects": {
+                                    "out-identifier": "objects"
+                            }
+                    },
+                    {
+                            "dispose": {}
+                    }
+            ]
     }
+    
 
    - observe the result. The Loan Application rules have fired and determined that, based on the credit score of the application, and the amount of the loan, the loan can be approved. The `approved` attribute of the `Loan` has been set to `true`.
 
@@ -134,9 +142,9 @@ This installation option will install the Decision Manager 7 and Decision Servic
 
 10. The project has simple data model (Loan & Applicant) and single decision table (loan-application) which contains the loan approval rule set.
 
-11. Build and deploy version 1.0.0 of the project. Click on the "Build and Deploy" in the upper right corner.
+11. Build and deploy version 1.1.0 of the project. Click on the "Build and Deploy" in the upper right corner.
 
-12. Go to "Menu -> Deploy -> Execution Servers" repository to see the loan-application_1.0.0 KIE Container deployed on the Decision Server.
+12. Go to "Menu -> Deploy -> Execution Servers" repository to see the loan-application_1.1.0 KIE Container deployed on the Decision Server.
 
 13. The Decision Server provides a Swagger UI that documents the full RESTful interface exposed by the server at. To open the Swagger UI, go back to
 the OpenShift console, and go to the "Applications - Routes" screen. Copy the "Hostname" value next to "rhdm7-loan-kieserver". Paste the URL in a browser tab
