@@ -1,18 +1,7 @@
+. .\init-properties.ps1
 
 # wipe screen
 Clear-Host
-
-$PROJECT_HOME = $PSScriptRoot
-$DEMO="Loan Demo"
-$AUTHORS="Red Hat"
-$PROJECT="git@github.com:jbossdemocentral/rhdm7-loan-demo.git"
-$PRODUCT="Red Hat Decision Manager"
-$SRC_DIR="$PROJECT_HOME\installs"
-$SUPPORT_DIR="$PROJECT_HOME\support"
-$DM_DECISION_CENTRAL="rhdm-7.0.0.GA-decision-central-eap7-deployable.zip"
-$DM_KIE_SERVER="rhdm-7.0.0.GA-kie-server-ee7.zip"
-$EAP="jboss-eap-7.1.0.zip"
-$VERSION="7.0"
 
 set NOPAUSE=true
 
@@ -21,11 +10,11 @@ Write-Host "##                                                             ##"
 Write-Host "##  Setting up the ${DEMO}       ##"
 Write-Host "##                                                             ##"
 Write-Host "##                                                             ##"
-Write-Host "##     ####  #   # ####    #   #   #####    #####              ##"
-Write-Host "##     #   # #   # #   #  # # # #     #     #   #              ##"
-Write-Host "##     ####  ##### #   #  #  #  #   ###     #   #              ##"
-Write-Host "##     # #   #   # #   #  #     #   #       #   #              ##"
-Write-Host "##     #  #  #   # ####   #     #  #     #  #####              ##"
+Write-Host "##     ####  #   # ####    #   #   #####    #   #              ##"
+Write-Host "##     #   # #   # #   #  # # # #     #      # #               ##"
+Write-Host "##     ####  ##### #   #  #  #  #   ###       #                ##"
+Write-Host "##     # #   #   # #   #  #     #   #        # #               ##"
+Write-Host "##     #  #  #   # ####   #     #  #     #  #   #              ##"
 Write-Host "##                                                             ##"
 Write-Host "##  brought to you by,                                         ##"
 Write-Host "##             %AUTHORS%                                         ##"
@@ -73,7 +62,7 @@ Copy-Item "$SUPPORT_DIR\docker\.dockerignore" "$PROJECT_HOME" -force
 
 Write-Host "Starting Docker build.`n"
 
-$argList = "build --no-cache -t jbossdemocentral/rhdm7-loan-demo $PROJECT_HOME"
+$argList = "build --no-cache -t jbossdemocentral/rhdm7-loan-demo --build-arg DM_VERSION=$DM_VERSION --build-arg DM_DECISION_CENTRAL=$DM_DECISION_CENTRAL --build-arg DM_KIE_SERVER=$DM_KIE_SERVER --build-arg EAP=$EAP --build-arg JBOSS_EAP=$JBOSS_EAP --build-arg PROJECT_GIT_REPO=$PROJECT_GIT_REPO --build-arg NIOGIT_PROJECT_GIT_REPO=$NIOGIT_PROJECT_GIT_REPO $PROJECT_HOME"
 $process = (Start-Process -FilePath docker.exe -ArgumentList $argList -Wait -PassThru -NoNewWindow)
 Write-Host "`n"
 
@@ -85,19 +74,24 @@ If ($process.ExitCode -ne 0) {
 Write-Host "Docker build finished.`n"
 
 Remove-Item "$PROJECT_HOME\Dockerfile" -Force
+Remove-Item "$PROJECT_HOME\Dockerfile-ui" -Force
 
-Write-Host "================================================================================"
-Write-Host "=                                                                              ="
-Write-Host "=  You can now start the $PRODUCT in a Docker container with:            ="
-Write-Host "=                                                                              ="
-Write-Host "=  docker run -it -p 8080:8080 -p 9990:9990 jbossdemocentral/rhdm7-loan-demo   ="
-Write-Host "=                                                                              ="
-Write-Host "=  Login into business central at:                                             ="
-Write-Host "=                                                                              ="
-Write-Host "=    http://localhost:8080/decision-central  (u:dmAdmin / p:redhatdm1!)     ="
-Write-Host "=                                                                              ="
-Write-Host "=  See README.md for general details to run the various demo cases.            ="
-Write-Host "=                                                                              ="
-Write-Host "=  $PRODUCT $VERSION $DEMO Setup Complete.                      ="
-Write-Host "=                                                                              ="
-Write-Host "================================================================================"
+Write-Host "================================================================================="
+Write-Host "=                                                                               ="
+Write-Host "=  You can now start the $PRODUCT in a Docker containers with:             ="
+Write-Host "=                                                                               ="
+Write-Host "=  docker run -it -p 8080:8080 -p 9990:9990 jbossdemocentral/rhdm7-loan-demo    ="
+Write-Host "=                                                                               ="
+Write-Host "=  Login into Decision Central at:                                              ="
+Write-Host "=                                                                               ="
+Write-Host "=    http://localhost:8080/decision-central  (u:dmAdmin / p:redhatdm1!)      ="
+Write-Host "=                                                                               ="
+Write-Host "=  Login into the Quick Loan Bank application at:                               ="
+Write-Host "=                                                                               ="
+Write-Host "=    http://localhost:3000                                                      ="
+Write-Host "=                                                                               ="
+Write-Host "=  See README.md for general details to run the various demo cases.             ="
+Write-Host "=                                                                               ="
+Write-Host "=  $PRODUCT $VERSION $DEMO Setup Complete.                       ="
+Write-Host "=                                                                               ="
+Write-Host "================================================================================="

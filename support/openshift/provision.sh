@@ -45,7 +45,7 @@ ARG_PROJECT_SUFFIX=
 ARG_COMMAND=
 ARG_RUN_VERIFY=false
 ARG_WITH_IMAGESTREAMS=false
-ARG_PV_CAPACITY=512Mi
+#ARG_PV_CAPACITY=512Mi
 ARG_DEMO=
 
 while :; do
@@ -164,6 +164,8 @@ KIE_SERVER_CONTROLLER_PWD=kieserver1!
 KIE_SERVER_USER=kieserver
 KIE_SERVER_PWD=kieserver1!
 
+OPENSHIFT_DM7_TEMPLATES_TAG="7.2.0.GA"
+
 ################################################################################
 # DEMO MATRIX                                                                  #
 ################################################################################
@@ -243,20 +245,26 @@ function create_projects() {
 
 function import_imagestreams_and_templates() {
   echo_header "Importing Image Streams"
-  oc create -f https://raw.githubusercontent.com/jboss-container-images/rhdm-7-openshift-image/rhdm70/rhdm70-image-streams.yaml
+  oc create -f https://raw.githubusercontent.com/jboss-container-images/rhdm-7-openshift-image/$OPENSHIFT_DM7_TEMPLATES_TAG/rhdm72-image-streams.yaml
+
+  echo_header "Patching the ImageStreams"
+  oc patch is/rhdm72-decisioncentral-openshift --type='json' -p '[{"op": "replace", "path": "/spec/tags/0/from/name", "value": "registry.access.redhat.com/rhdm-7/rhdm72-decisioncentral-openshift:1.0"}]'
+  oc patch is/rhdm72-kieserver-openshift --type='json' -p '[{"op": "replace", "path": "/spec/tags/0/from/name", "value": "registry.access.redhat.com/rhdm-7/rhdm72-kieserver-openshift:1.0"}]'
 
   echo_header "Importing Templates"
-  oc create -f https://raw.githubusercontent.com/jboss-container-images/rhdm-7-openshift-image/rhdm70/templates/rhdm70-full.yaml
-  oc create -f https://raw.githubusercontent.com/jboss-container-images/rhdm-7-openshift-image/rhdm70/templates/rhdm70-kieserver.yaml
-  oc create -f https://raw.githubusercontent.com/jboss-container-images/rhdm-7-openshift-image/rhdm70/templates/rhdm70-kieserver-basic-s2i.yaml
-  oc create -f https://raw.githubusercontent.com/jboss-container-images/rhdm-7-openshift-image/rhdm70/templates/rhdm70-kieserver-https-s2i.yaml
+  oc create -f https://raw.githubusercontent.com/jboss-container-images/rhdm-7-openshift-image/$OPENSHIFT_DM7_TEMPLATES_TAG/templates/rhdm72-trial-ephemeral.yaml
+  oc create -f https://raw.githubusercontent.com/jboss-container-images/rhdm-7-openshift-image/$OPENSHIFT_DM7_TEMPLATES_TAG/templates/rhdm72-authoring.yaml
 }
-
 
 function import_secrets_and_service_account() {
   echo_header "Importing secrets and service account."
-  oc create -f https://raw.githubusercontent.com/jboss-container-images/rhdm-7-openshift-image/rhdm70/decisioncentral-app-secret.yaml
-  oc create -f https://raw.githubusercontent.com/jboss-container-images/rhdm-7-openshift-image/rhdm70/kieserver-app-secret.yaml
+  oc process -f https://raw.githubusercontent.com/jboss-container-images/rhdm-7-openshift-image/$OPENSHIFT_DM7_TEMPLATES_TAG/example-app-secret-template.yaml | oc create -f -
+  oc process -f https://raw.githubusercontent.com/jboss-container-images/rhdm-7-openshift-image/$OPENSHIFT_DM7_TEMPLATES_TAG/example-app-secret-template.yaml -p SECRET_NAME=kieserver-app-secret | oc create -f -
+
+  oc create serviceaccount decisioncentral-service-account
+  oc create serviceaccount kieserver-service-account
+  oc secrets link --for=mount decisioncentral-service-account decisioncentral-app-secret
+  oc secrets link --for=mount kieserver-service-account kieserver-app-secret
 }
 
 function create_application() {
@@ -268,7 +276,7 @@ function create_application() {
     IMAGE_STREAM_NAMESPACE=${PRJ[0]}
   fi
 
-  oc new-app --template=rhdm70-full-persistent \
+  oc new-app --template=rhdm72-authoring \
 			-p APPLICATION_NAME="$ARG_DEMO" \
 			-p IMAGE_STREAM_NAMESPACE="$IMAGE_STREAM_NAMESPACE" \
 			-p KIE_ADMIN_USER="$KIE_ADMIN_USER" \
@@ -277,9 +285,9 @@ function create_application() {
 			-p KIE_SERVER_CONTROLLER_PWD="$KIE_SERVER_CONTROLLER_PWD" \
 			-p KIE_SERVER_USER="$KIE_SERVER_USER" \
 			-p KIE_SERVER_PWD="$KIE_SERVER_PWD" \
-			-p MAVEN_REPO_USERNAME="$KIE_ADMIN_USER" \
-			-p MAVEN_REPO_PASSWORD="$KIE_ADMIN_PWD" \
-      -p DECISION_CENTRAL_VOLUME_CAPACITY="$ARG_PV_CAPACITY"
+			-p DECISION_CENTRAL_HTTPS_SECRET="decisioncentral-app-secret" \
+      -p KIE_SERVER_HTTPS_SECRET="kieserver-app-secret" \
+      -p DECISION_CENTRAL_MEMORY_LIMIT="2Gi"
 
 }
 

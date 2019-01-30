@@ -105,6 +105,8 @@ $KIE_SERVER_CONTROLLER_PWD="kieserver1!"
 $KIE_SERVER_USER="kieserver"
 $KIE_SERVER_PWD="kieserver1!"
 
+$OPENSHIFT_DM7_TEMPLATES_TAG="7.2.0.GA"
+
 ################################################################################
 # DEMO MATRIX                                                                  #
 ################################################################################
@@ -208,24 +210,30 @@ Function Create-Projects() {
 
 Function Import-ImageStreams-And-Templates() {
   Write-Output-Header "Importing Image Streams"
-  #Invoke-Expression "oc create -f https://raw.githubusercontent.com/jboss-container-images/rhdm-7-openshift-image/rhdm70-dev/rhdm70-image-streams.yaml"
-  Call-Oc "create -f https://raw.githubusercontent.com/jboss-container-images/rhdm-7-openshift-image/rhdm70/rhdm70-image-streams.yaml" $True "Error importing Image Streams" $True
+  Call-Oc "create -f https://raw.githubusercontent.com/jboss-container-images/rhdm-7-openshift-image/$OPENSHIFT_DM7_TEMPLATES_TAG/rhdm72-image-streams.yaml" $True "Error importing Image Streams" $True
+
+  Write-Output-Header "Patching the ImageStreams"
+  oc patch is/rhdm72-decisioncentral-openshift --type='json' -p "[{'op': 'replace', 'path': '/spec/tags/0/from/name', 'value': 'registry.access.redhat.com/rhdm-7/rhdm72-decisioncentral-openshift:1.0'}]"
+  oc patch is/rhdm72-kieserver-openshift --type='json' -p "[{'op': 'replace', 'path': '/spec/tags/0/from/name', 'value': 'registry.access.redhat.com/rhdm-7/rhdm72-kieserver-openshift:1.0'}]"
 
   Write-Output-Header "Importing Templates"
-  Call-Oc "create -f https://raw.githubusercontent.com/jboss-container-images/rhdm-7-openshift-image/rhdm70/templates/rhdm70-full.yaml" $True "Error importing Template" $True
-  Call-Oc "create -f https://raw.githubusercontent.com/jboss-container-images/rhdm-7-openshift-image/rhdm70/templates/rhdm70-kieserver.yaml" $True "Error importing Template" $True
-  Call-Oc "create -f https://raw.githubusercontent.com/jboss-container-images/rhdm-7-openshift-image/rhdm70/templates/rhdm70-kieserver-basic-s2i.yaml" $True "Error importing Template" $True
-  Call-Oc "create -f https://raw.githubusercontent.com/jboss-container-images/rhdm-7-openshift-image/rhdm70/templates/rhdm70-kieserver-https-s2i.yaml" $True "Error importing Template" $True
+  Call-Oc "create -f https://raw.githubusercontent.com/jboss-container-images/rhdm-7-openshift-image/$OPENSHIFT_DM7_TEMPLATES_TAG/templates/rhdm72-trial-ephemeral.yaml" $True "Error importing Template" $True
+  Call-Oc "create -f https://raw.githubusercontent.com/jboss-container-images/rhdm-7-openshift-image/$OPENSHIFT_DM7_TEMPLATES_TAG/templates/rhdm72-authoring.yaml" $True "Error importing Template" $True
 }
 
 Function Import-Secrets-And-Service-Account() {
   Write-Output-Header "Importing secrets and service account."
-  Call-Oc "create -f https://raw.githubusercontent.com/jboss-container-images/rhdm-7-openshift-image/rhdm70/decisioncentral-app-secret.yaml" $True "Error importing Decision Central secret." $True
-  Call-Oc "create -f https://raw.githubusercontent.com/jboss-container-images/rhdm-7-openshift-image/rhdm70/kieserver-app-secret.yaml" $True "Error importing KIE-Server secret." $True
+  oc process -f https://raw.githubusercontent.com/jboss-container-images/rhdm-7-openshift-image/$OPENSHIFT_DM7_TEMPLATES_TAG/example-app-secret-template.yaml | oc create -f -
+  oc process -f https://raw.githubusercontent.com/jboss-container-images/rhdm-7-openshift-image/$OPENSHIFT_DM7_TEMPLATES_TAG/example-app-secret-template.yaml -p SECRET_NAME=kieserver-app-secret | oc create -f -
+
+  Call-Oc "create serviceaccount decisioncentral-service-account" $True "Error creating service account." $True
+  Call-Oc "create serviceaccount kieserver-service-account" $True "Error creating service account." $True
+  Call-Oc "secrets link --for=mount decisioncentral-service-account decisioncentral-app-secret" $True "Error linking decisioncentral-service-account to secret"
+  Call-Oc "secrets link --for=mount kieserver-service-account kieserver-app-secret" $True "Error linking kieserver-service-account to secret"``
 }
 
 Function Create-Application() {
-  Write-Output-Header "Creating BPM Suite 7 Application config."
+  Write-Output-Header "Creating Decision Manager 7 Application config."
 
   $IMAGE_STREAM_NAMESPACE="openshift"
 
@@ -233,16 +241,18 @@ Function Create-Application() {
     $IMAGE_STREAM_NAMESPACE=$($PRJ[0])
   }
 
-  $argList = "new-app --template=rhdm70-full-persistent"`
+  $argList = "new-app --template=rhdm72-authoring"`
       + " -p APPLICATION_NAME=""$ARG_DEMO""" `
       + " -p IMAGE_STREAM_NAMESPACE=""$IMAGE_STREAM_NAMESPACE""" `
       + " -p KIE_ADMIN_USER=""$KIE_ADMIN_USER""" `
       + " -p KIE_ADMIN_PWD=""$KIE_ADMIN_PWD""" `
       + " -p KIE_SERVER_CONTROLLER_USER=""$KIE_SERVER_CONTROLLER_USER""" `
       + " -p KIE_SERVER_CONTROLLER_PWD=""$KIE_SERVER_CONTROLLER_PWD""" `
-      + " -p MAVEN_REPO_USERNAME=""$KIE_ADMIN_USER""" `
-      + " -p MAVEN_REPO_PASSWORD=""$KIE_ADMIN_PWD""" `
-      + " -p DECISION_CENTRAL_VOLUME_CAPACITY=""$ARG_PV_CAPACITY"""
+      + " -p KIE_SERVER_USER=""$KIE_SERVER_USER""" `
+      + " -p KIE_SERVER_PWD=""$KIE_SERVER_PWD""" `
+      + " -p DECISION_CENTRAL_HTTPS_SECRET=""decisioncentral-app-secret""" `
+      + " -p KIE_SERVER_HTTPS_SECRET=""kieserver-app-secret""" `
+      + " -p DECISION_CENTRAL_MEMORY_LIMIT=""2Gi"""
 
   Call-Oc $argList $True "Error creating application." $True
 }
