@@ -9,9 +9,9 @@ There are three options for you to install this project: local, OpenShift and Do
 Software
 --------
 The following software is required to run this demo:
-- [JBoss EAP 7.1 zip](https://developers.redhat.com/download-manager/file/jboss-eap-7.1.0.zip)
-- [Red Hat Decision Manager 7.0.0.GA Decision Central deployable for EAP 7](https://developers.redhat.com/download-manager/file/rhdm-7.0.0.GA-decision-central-eap7-deployable.zip)
-- [Red Hat Decision Manager: KIE-Server 7.0.0.GA deployable for EE7](https://developers.redhat.com/download-manager/file/rhdm-7.0.0.GA-kie-server-ee7.zip)
+- [JBoss EAP 7.2 zip](https://developers.redhat.com/download-manager/file/jboss-eap-7.2.0.zip)
+- [Red Hat Decision Manager 7.2.0.GA Decision Central deployable for EAP 7](https://developers.redhat.com/download-manager/file/rhdm-7.2.0.GA-decision-central-eap7-deployable.zip)
+- [Red Hat Decision Manager: KIE-Server 7.2.0.GA deployable for EE7](https://developers.redhat.com/download-manager/file/rhdm-7.2.0.GA-kie-server-ee7.zip)
 - [7-Zip](http://www.7-zip.org/download.html) (Windows only): to overcome the Windows 260 character path length limit, we need 7-Zip to unzip the Decision Manager deployable.
 
 Option 1 - Install on your machine
@@ -96,7 +96,7 @@ Option 1 - Install on your machine
                     }
             ]
     }
-    
+
 
    - observe the result. The Loan Application rules have fired and determined that, based on the credit score of the application, and the amount of the loan, the loan can be approved. The `approved` attribute of the `Loan` has been set to `true`.
 

@@ -1,20 +1,5 @@
 #!/bin/sh
-DEMO="Loan Demo"
-AUTHORS="Red Hat"
-PROJECT="git@github.com:jbossdemocentral/rhdm7-loan-demo.git"
-PRODUCT="Red Hat Decision Manager"
-TARGET=./target
-JBOSS_HOME=$TARGET/jboss-eap-7.1
-SERVER_DIR=$JBOSS_HOME/standalone/deployments
-SERVER_CONF=$JBOSS_HOME/standalone/configuration/
-SERVER_BIN=$JBOSS_HOME/bin
-SRC_DIR=./installs
-SUPPORT_DIR=./support
-DM_DECISION_CENTRAL=rhdm-7.0.0.GA-decision-central-eap7-deployable.zip
-DM_KIE_SERVER=rhdm-7.0.0.GA-kie-server-ee7.zip
-EAP=jboss-eap-7.1.0.zip
-#EAP_PATCH=jboss-eap-6.4.7-patch.zip
-VERSION=7.0
+. init-properties.sh
 
 # wipe screen.
 clear
@@ -25,11 +10,11 @@ echo "##                                                             ##"
 echo "##  Setting up the ${DEMO}       ##"
 echo "##                                                             ##"
 echo "##                                                             ##"
-echo "##     ####  #   # ####    #   #   #####    #####              ##"
-echo "##     #   # #   # #   #  # # # #     #     #   #              ##"
-echo "##     ####  ##### #   #  #  #  #   ###     #   #              ##"
-echo "##     # #   #   # #   #  #     #   #       #   #              ##"
-echo "##     #  #  #   # ####   #     #  #     #  #####              ##"
+echo "##     ####  #   # ####    #   #   #####    #   #              ##"
+echo "##     #   # #   # #   #  # # # #     #      # #               ##"
+echo "##     ####  ##### #   #  #  #  #   ###       #                ##"
+echo "##     # #   #   # #   #  #     #   #        # #               ##"
+echo "##     #  #  #   # ####   #     #  #     #  #   #              ##"
 echo "##                                                             ##"
 echo "##  brought to you by,                                         ##"
 echo "##             ${AUTHORS}                                         ##"
@@ -84,10 +69,10 @@ fi
 cp support/docker/Dockerfile .
 cp support/docker/.dockerignore .
 
-echo Starting Docker build.
+echo Starting Docker builds.
 echo
 
-docker build --no-cache -t jbossdemocentral/rhdm7-loan-demo .
+docker build --no-cache -t jbossdemocentral/rhdm7-loan-demo --build-arg DM_VERSION=$DM_VERSION --build-arg DM_DECISION_CENTRAL=$DM_DECISION_CENTRAL --build-arg DM_KIE_SERVER=$DM_KIE_SERVER --build-arg EAP=$EAP --build-arg JBOSS_EAP=$JBOSS_EAP --build-arg PROJECT_GIT_REPO=$PROJECT_GIT_REPO --build-arg NIOGIT_PROJECT_GIT_REPO=$NIOGIT_PROJECT_GIT_REPO .
 
 if [ $? -ne 0 ]; then
         echo
@@ -100,19 +85,25 @@ echo Docker build finished.
 echo
 
 rm Dockerfile
+rm Dockerfile-ui
 
 echo
-echo "================================================================================="
-echo "=                                                                               ="
-echo "=  You can now start the $PRODUCT in a Docker container with:   ="
-echo "=                                                                               ="
-echo "=  docker run -it -p 8080:8080 -p 9990:9990 jbossdemocentral/rhdm7-loan-demo    ="
-echo "=                                                                               ="
-echo "=  Login into business central at:                                              ="
-echo "=                                                                               ="
-echo "=    http://localhost:8080/decision-central  (u:dmAdmin / p:redhatdm1!)         ="
-echo "=                                                                               ="
-echo "=                                                                               ="
-echo "=  $PRODUCT $VERSION $DEMO Setup Complete.                    ="
-echo "=                                                                               ="
-echo "================================================================================="
+echo "=================================================================================="
+echo "=                                                                                ="
+echo "=  You can now start the $PRODUCT in a Docker container with:    ="
+echo "=                                                                                ="
+echo "=  docker run -it -p 8080:8080 -p 9990:9990 jbossdemocentral/rhdm7-loan-demo     ="
+echo "=                                                                                ="
+echo "=  Login into Decision Central at:                                               ="
+echo "=                                                                                ="
+echo "=    http://localhost:8080/decision-central  (u:dmAdmin / p:redhatdm1!)          ="
+echo "=                                                                                ="
+echo "=  Login into Quick Loan Bank application at:                                    ="
+echo "=                                                                                ="
+echo "=    http://localhost:3000                                                       ="
+echo "=                                                                                ="
+echo "=  See README.md for general details to run the various demo cases.              ="
+echo "=                                                                                ="
+echo "=  $PRODUCT $VERSION $DEMO Setup Complete.             ="
+echo "=                                                                                ="
+echo "=================================================================================="

@@ -1,28 +1,17 @@
+Param(
+    [switch]$h,
+    [switch]$o
+)
+
+. .\init-properties.ps1
+
+# Additional properties
+$PROJECT_GIT_BRANCH="master"
+$PROJECT_GIT_DIR="$PROJECT_HOME\support\demo_project_git"
+$OFFLINE_MODE="false"
 
 # wipe screen
 Clear-Host
-
-$PROJECT_HOME = $PSScriptRoot
-$DEMO="Loan Demo"
-$AUTHORS="Red Hat"
-$PROJECT="git@github.com:jbossdemocentral/rhdm7-loan-demo.git"
-$PRODUCT="Red Hat Decision Manager"
-$TARGET="$PROJECT_HOME\target"
-$JBOSS_HOME="$TARGET\jboss-eap-7.1"
-$SERVER_DIR="$JBOSS_HOME\standalone\deployments\"
-$SERVER_CONF="$JBOSS_HOME\standalone\configuration\"
-$SERVER_BIN="$JBOSS_HOME\bin"
-$SRC_DIR="$PROJECT_HOME\installs"
-$SUPPORT_DIR="$PROJECT_HOME\support"
-$PRJ_DIR="$PROJECT_HOME\projects"
-$DM_DECISION_CENTRAL="rhdm-7.0.0.GA-decision-central-eap7-deployable.zip"
-$DM_KIE_SERVER="rhdm-7.0.0.GA-kie-server-ee7.zip"
-$EAP="jboss-eap-7.1.0.zip"
-#$EAP_PATCH="jboss-eap-6.4.7-patch.zip"
-$VERSION="7.0"
-$PROJECT_GIT_REPO="https://github.com/jbossdemocentral/rhdm7-loan-demo-repo"
-$PROJECT_GIT_DIR="$PROJECT_HOME\support\demo_project_git"
-$OFFLINE_MODE="false"
 
 If ($h) {
 	Write-Host "Usage: init.ps1 [args...]"
@@ -37,11 +26,11 @@ Write-Host "##                                                             ##"
 Write-Host "##  Setting up the ${DEMO}       ##"
 Write-Host "##                                                             ##"
 Write-Host "##                                                             ##"
-Write-Host "##     ####  #   # ####    #   #   #####    #####              ##"
-Write-Host "##     #   # #   # #   #  # # # #     #     #   #              ##"
-Write-Host "##     ####  ##### #   #  #  #  #   ###     #   #              ##"
-Write-Host "##     # #   #   # #   #  #     #   #       #   #              ##"
-Write-Host "##     #  #  #   # ####   #     #  #     #  #####              ##"
+Write-Host "##     ####  #   # ####    #   #   #####    #   #              ##"
+Write-Host "##     #   # #   # #   #  # # # #     #      # #               ##"
+Write-Host "##     ####  ##### #   #  #  #  #   ###       #                ##"
+Write-Host "##     # #   #   # #   #  #     #   #        # #               ##"
+Write-Host "##     #  #  #   # ####   #     #  #     #  #   #              ##"
 Write-Host "##                                                             ##"
 Write-Host "##  brought to you by,                                         ##"
 Write-Host "##             %AUTHORS%                                         ##"
@@ -51,6 +40,12 @@ Write-Host "##  %PROJECT%      ##"
 Write-Host "##                                                             ##"
 Write-Host "#################################################################`n"
 
+#Test whether Maven is available.
+if ((Get-Command "npm" -ErrorAction SilentlyContinue) -eq $null)
+{
+   Write-Host "npm is required but not installed yet... aborting.`n"
+   exit
+}
 
 If (Test-Path "$SRC_DIR\$EAP") {
 	Write-Host "Product sources are present...`n"
@@ -182,40 +177,43 @@ try {
 ################################# Begin setup demo projects ##########################################
 
 Write-Host "- Setting up demo projects...`n"
+
+If (Test-Path "$SERVER_BIN\.niogit\") {
+Remove-Item "$SERVER_BIN\.niogit\" -Force -Recurse
+}
 New-Item -ItemType directory -Path "$SERVER_BIN\.niogit\" | Out-Null
 Copy-Item "$SUPPORT_DIR\rhdm7-demo-niogit\*" "$SERVER_BIN\.niogit\" -force -recurse
-
 If (! $o) {
   # Not in offline mode, so downloading the latest repo. We first download the repo in a temp dir and we only delete the old, cached repo, when the download is succesful.
   Write-Host "  - cloning the project's Git repo from: $PROJECT_GIT_REPO`n"
   If (Test-Path "$PROJECT_HOME\target\temp") {
 	Remove-Item "$PROJECT_HOME\target\temp" -Force -Recurse
   }
-  $argList = "clone --bare $PROJECT_GIT_REPO $PROJECT_HOME\target\temp\rhdm7-loan-demo-repo.git"
+  $argList = "clone --bare $PROJECT_GIT_REPO $PROJECT_HOME\target\temp\$PROJECT_GIT_REPO_NAME"
   $gitProcess = (Start-Process -FilePath "git" -ArgumentList $argList -Wait -PassThru -NoNewWindow)
   If ($gitProcess.ExitCode -ne 0) {
 		Write-Host "Error cloning the project's Git repo. If there is no Internet connection available, please run this script in 'offline-mode' ('-o') to use a previously downloaded and cached version of the project's Git repo... Aborting"
 		exit 1
   }
   Write-Host ""
-  Write-Host "  - replacing cached project git repo: $PROJECT_GIT_DIR/rhdm7-loan-demo-repo.git`n"
+  Write-Host "  - replacing cached project git repo: $PROJECT_GIT_DIR/$PROJECT_GIT_REPO_NAME`n"
   If (Test-Path "$PROJECT_GIT_DIR") {
 	Remove-Item "$PROJECT_GIT_DIR" -Force -Recurse
   }
   New-Item -ItemType directory -Path "$PROJECT_GIT_DIR"
-  Copy-Item "$PROJECT_HOME\target\temp\rhdm7-loan-demo-repo.git" "$PROJECT_GIT_DIR\rhdm7-loan-demo-repo.git" -Force -Recurse
+  Copy-Item "$PROJECT_HOME\target\temp\$PROJECT_GIT_REPO_NAME" "$PROJECT_GIT_DIR\$PROJECT_GIT_REPO_NAME" -Force -Recurse
   Remove-Item "$PROJECT_HOME\target\temp" -Force -Recurse
 } else {
   Write-Host "  - running in offline-mode, using cached project's Git repo.`n"
 
-  If (-Not (Test-Path "$PROJECT_GIT_DIR\rhdm7-loan-demo-repo.git")) {
+  If (-Not (Test-Path "$PROJECT_GIT_DIR\$PROJECT_GIT_REPO_NAME")) {
     Write-Host "No project Git repo found. Please run the script without the 'offline' ('-o') option to automatically download the required Git repository!`n"
     exit 1
   }
 }
 # Copy the repo to the JBoss BPMSuite installation directory.
-Remove-Item "$JBOSS_HOME\bin\.niogit\myrepo.git" -Force -Recurse
-Copy-Item "$PROJECT_GIT_DIR\rhdm7-loan-demo-repo.git" "$SERVER_BIN\.niogit\myrepo.git" -force -recurse
+Remove-Item "$SERVER_BIN\.niogit\$NIOGIT_PROJECT_GIT_REPO" -Force -Recurse
+Copy-Item "$PROJECT_GIT_DIR\$PROJECT_GIT_REPO_NAME" "$SERVER_BIN\.niogit\$NIOGIT_PROJECT_GIT_REPO" -force -recurse
 
 ################################# End setup demo projects ##########################################
 
@@ -225,20 +223,20 @@ Copy-Item "$SUPPORT_DIR\standalone-full.xml" "$SERVER_CONF\standalone.xml" -forc
 Write-Host "- setup email task notification user...`n"
 Copy-Item "$SUPPORT_DIR\userinfo.properties" "$SERVER_DIR\decision-central.war\WEB-INF\classes\" -force
 
-Write-Host "============================================================================"
-Write-Host "=                                                                          ="
-Write-Host "=  You can now start the $PRODUCT with:                             ="
-Write-Host "=                                                                          ="
+Write-Host "======================================================================================="
+Write-Host "=                                                                                     ="
+Write-Host "=  You can now start the $PRODUCT with:                                        ="
+Write-Host "=                                                                                     ="
 Write-Host "=   $SERVER_BIN\standalone.ps1                          ="
-Write-Host "=       or                                                                   ="
-Write-Host "=   $SERVER_BIN\standalone.bat                          ="
-Write-Host "=                                                                          ="
-Write-Host "=  Login into business central at:                                         ="
-Write-Host "=                                                                          ="
-Write-Host "=    http://localhost:8080/decision-central  (u:dmAdmin / p:redhatdm1!)    ="
-Write-Host "=                                                                          ="
-Write-Host "=  See README.md for general details to run the various demo cases.        ="
-Write-Host "=                                                                          ="
-Write-Host "=  $PRODUCT $VERSION $DEMO Setup Complete.                  ="
-Write-Host "=                                                                          ="
-Write-Host "============================================================================"
+Write-Host "=       or                                                                            ="
+Write-Host "=   $SERVER_BIN\standalone.bat                                     ="
+Write-Host "=                                                                                     ="
+Write-Host "=  Login into Decision Central at:                                                    ="
+Write-Host "=                                                                                     ="
+Write-Host "=    http://localhost:8080/decision-central  (u:dmAdmin / p:redhatdm1!)               ="
+Write-Host "=                                                                                     ="
+Write-Host "=  See README.md for general details to run the various demo cases.                   ="
+Write-Host "=                                                                                     ="
+Write-Host "=  $PRODUCT $VERSION $DEMO Setup Complete.                             ="
+Write-Host "=                                                                                     ="
+Write-Host "======================================================================================="
