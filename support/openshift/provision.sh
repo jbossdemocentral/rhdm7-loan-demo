@@ -164,7 +164,8 @@ KIE_SERVER_CONTROLLER_PWD=kieserver1!
 KIE_SERVER_USER=kieserver
 KIE_SERVER_PWD=kieserver1!
 
-OPENSHIFT_DM7_TEMPLATES_TAG="7.2.0.GA"
+OPENSHIFT_DM7_TEMPLATES_TAG="7.3.0.GA"
+IMAGE_STREAM_TAG=1.0
 
 ################################################################################
 # DEMO MATRIX                                                                  #
@@ -245,15 +246,65 @@ function create_projects() {
 
 function import_imagestreams_and_templates() {
   echo_header "Importing Image Streams"
-  oc create -f https://raw.githubusercontent.com/jboss-container-images/rhdm-7-openshift-image/$OPENSHIFT_DM7_TEMPLATES_TAG/rhdm72-image-streams.yaml
+  oc create -f https://raw.githubusercontent.com/jboss-container-images/rhdm-7-openshift-image/$OPENSHIFT_DM7_TEMPLATES_TAG/rhdm73-image-streams.yaml
 
-  echo_header "Patching the ImageStreams"
-  oc patch is/rhdm72-decisioncentral-openshift --type='json' -p '[{"op": "replace", "path": "/spec/tags/0/from/name", "value": "registry.access.redhat.com/rhdm-7/rhdm72-decisioncentral-openshift:1.0"}]'
-  oc patch is/rhdm72-kieserver-openshift --type='json' -p '[{"op": "replace", "path": "/spec/tags/0/from/name", "value": "registry.access.redhat.com/rhdm-7/rhdm72-kieserver-openshift:1.0"}]'
+  echo ""
+  echo "Fetching ImageStreams from registry."
+  #Instead of sleeping 10 seconds, run a little annimation for 10 seconds
+  runSpinner 10
+
+  #  Explicitly import the images. This is to overcome a problem where the image import gets a 500 error from registry.redhat.io when we deploy multiple containers at once.
+  oc import-image rhdm73-decisioncentral-openshift:$IMAGE_STREAM_TAG --confirm -n ${PRJ[0]}
+  oc import-image rhdm73-kieserver-openshift:$IMAGE_STREAM_TAG --confirm -n ${PRJ[0]}
+
+  #  echo_header "Patching the ImageStreams"
+  #  oc patch is/rhpam73-businesscentral-openshift --type='json' -p '[{"op": "replace", "path": "/spec/tags/0/from/name", "value": "registry.access.redhat.com/rhpam-7/rhpam73-businesscentral-openshift:1.0"}]'
+  #  oc patch is/rhpam73-kieserver-openshift --type='json' -p '[{"op": "replace", "path": "/spec/tags/0/from/name", "value": "registry.access.redhat.com/rhpam-7/rhpam73-kieserver-openshift:1.0"}]'
 
   echo_header "Importing Templates"
-  oc create -f https://raw.githubusercontent.com/jboss-container-images/rhdm-7-openshift-image/$OPENSHIFT_DM7_TEMPLATES_TAG/templates/rhdm72-trial-ephemeral.yaml
-  oc create -f https://raw.githubusercontent.com/jboss-container-images/rhdm-7-openshift-image/$OPENSHIFT_DM7_TEMPLATES_TAG/templates/rhdm72-authoring.yaml
+  oc create -f https://raw.githubusercontent.com/jboss-container-images/rhdm-7-openshift-image/$OPENSHIFT_DM7_TEMPLATES_TAG/templates/rhdm73-authoring.yaml
+}
+
+#Runs a spinner for the time passed to the function.
+function runSpinner() {
+  sleeptime=0.5
+  maxCount=$( bc <<< "$1 / $sleeptime")
+  counter=0
+  i=1
+  sp="/-\|"
+  while [ $counter -lt $maxCount ]
+  do
+    printf "\b${sp:i++%${#sp}:1}"
+    sleep $sleeptime
+    let counter=counter+1
+  done
+}
+
+function createRhnSecretForPull() {
+
+  echo ""
+  echo "########################################## Login Required ##########################################"
+  echo "# The new Red Hat Image Registry requires users to login with their Red Hat Network (RHN) account. #"
+  echo "# If you do not have an RHN account yet, you can create one at https://developers.redhat.com       #"
+  echo "####################################################################################################"
+  echo ""
+
+  echo "Enter RHN username:"
+  read RHN_USERNAME
+
+  echo "Enter RHN password:"
+  read -s RHN_PASSWORD
+
+  echo "Enter e-mail address:"
+  read RHN_EMAIL
+
+  oc create secret docker-registry red-hat-container-registry \
+    --docker-server=registry.redhat.io \
+    --docker-username="$RHN_USERNAME" \
+    --docker-password="$RHN_PASSWORD" \
+    --docker-email="$RHN_EMAIL"
+
+    oc secrets link builder red-hat-container-registry --for=pull
 }
 
 function import_secrets_and_service_account() {
@@ -276,7 +327,7 @@ function create_application() {
     IMAGE_STREAM_NAMESPACE=${PRJ[0]}
   fi
 
-  oc new-app --template=rhdm72-authoring \
+  oc new-app --template=rhdm73-authoring \
 			-p APPLICATION_NAME="$ARG_DEMO" \
 			-p IMAGE_STREAM_NAMESPACE="$IMAGE_STREAM_NAMESPACE" \
 			-p KIE_ADMIN_USER="$KIE_ADMIN_USER" \
@@ -403,6 +454,7 @@ case "$ARG_COMMAND" in
         print_info
         #pre_condition_check
         create_projects
+        createRhnSecretForPull
         if [ "$ARG_WITH_IMAGESTREAMS" = true ] ; then
            import_imagestreams_and_templates
         fi
