@@ -164,8 +164,10 @@ KIE_SERVER_CONTROLLER_PWD=kieserver1!
 KIE_SERVER_USER=kieserver
 KIE_SERVER_PWD=kieserver1!
 
-OPENSHIFT_DM7_TEMPLATES_TAG="7.3.0.GA"
+# Version Configuration Parameters
+OPENSHIFT_DM7_TEMPLATES_TAG="7.5.0.GA"
 IMAGE_STREAM_TAG=1.0
+DM7_VERSION=75
 
 ################################################################################
 # DEMO MATRIX                                                                  #
@@ -246,7 +248,7 @@ function create_projects() {
 
 function import_imagestreams_and_templates() {
   echo_header "Importing Image Streams"
-  oc create -f https://raw.githubusercontent.com/jboss-container-images/rhdm-7-openshift-image/$OPENSHIFT_DM7_TEMPLATES_TAG/rhdm73-image-streams.yaml
+  oc create -f https://raw.githubusercontent.com/jboss-container-images/rhdm-7-openshift-image/$OPENSHIFT_DM7_TEMPLATES_TAG/rhdm$DM7_VERSION-image-streams.yaml
 
   echo ""
   echo "Fetching ImageStreams from registry."
@@ -254,15 +256,15 @@ function import_imagestreams_and_templates() {
   runSpinner 10
 
   #  Explicitly import the images. This is to overcome a problem where the image import gets a 500 error from registry.redhat.io when we deploy multiple containers at once.
-  oc import-image rhdm73-decisioncentral-openshift:$IMAGE_STREAM_TAG --confirm -n ${PRJ[0]}
-  oc import-image rhdm73-kieserver-openshift:$IMAGE_STREAM_TAG --confirm -n ${PRJ[0]}
+  oc import-image rhdm$DM7_VERSION-decisioncentral-openshift:$IMAGE_STREAM_TAG --confirm -n ${PRJ[0]}
+  oc import-image rhdm$DM7_VERSION-kieserver-openshift:$IMAGE_STREAM_TAG --confirm -n ${PRJ[0]}
 
   #  echo_header "Patching the ImageStreams"
   #  oc patch is/rhpam73-businesscentral-openshift --type='json' -p '[{"op": "replace", "path": "/spec/tags/0/from/name", "value": "registry.access.redhat.com/rhpam-7/rhpam73-businesscentral-openshift:1.0"}]'
   #  oc patch is/rhpam73-kieserver-openshift --type='json' -p '[{"op": "replace", "path": "/spec/tags/0/from/name", "value": "registry.access.redhat.com/rhpam-7/rhpam73-kieserver-openshift:1.0"}]'
 
   echo_header "Importing Templates"
-  oc create -f https://raw.githubusercontent.com/jboss-container-images/rhdm-7-openshift-image/$OPENSHIFT_DM7_TEMPLATES_TAG/templates/rhdm73-authoring.yaml
+  oc create -f https://raw.githubusercontent.com/jboss-container-images/rhdm-7-openshift-image/$OPENSHIFT_DM7_TEMPLATES_TAG/templates/rhdm$DM7_VERSION-authoring.yaml
 }
 
 #Runs a spinner for the time passed to the function.
@@ -327,7 +329,7 @@ function create_application() {
     IMAGE_STREAM_NAMESPACE=${PRJ[0]}
   fi
 
-  oc new-app --template=rhdm73-authoring \
+  oc new-app --template=rhdm$DM7_VERSION-authoring \
 			-p APPLICATION_NAME="$ARG_DEMO" \
 			-p IMAGE_STREAM_NAMESPACE="$IMAGE_STREAM_NAMESPACE" \
 			-p KIE_ADMIN_USER="$KIE_ADMIN_USER" \
@@ -339,6 +341,10 @@ function create_application() {
 			-p DECISION_CENTRAL_HTTPS_SECRET="decisioncentral-app-secret" \
       -p KIE_SERVER_HTTPS_SECRET="kieserver-app-secret" \
       -p DECISION_CENTRAL_MEMORY_LIMIT="2Gi"
+
+  # Disable the OpenShift Startup Strategy and revert to the old Controller Strategy
+  oc set env dc/$ARG_DEMO-rhdmcentr KIE_WORKBENCH_CONTROLLER_OPENSHIFT_ENABLED=false
+  oc set env dc/$ARG_DEMO-kieserver KIE_SERVER_STARTUP_STRATEGY=ControllerBasedStartupStrategy KIE_SERVER_CONTROLLER_USER=$KIE_SERVER_CONTROLLER_USER KIE_SERVER_CONTROLLER_PWD=$KIE_SERVER_CONTROLLER_PWD KIE_SERVER_CONTROLLER_SERVICE=$ARG_DEMO-rhdmcentr KIE_SERVER_CONTROLLER_PROTOCOL=ws
 
 }
 
