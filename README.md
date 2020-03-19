@@ -10,8 +10,8 @@ Software
 --------
 The following software is required to run this demo:
 - [JBoss EAP 7.2 zip](https://developers.redhat.com/download-manager/file/jboss-eap-7.2.0.zip)
-- [Red Hat Decision Manager 7.5.0.GA Decision Central deployable for EAP 7](https://developers.redhat.com/download-manager/file/rhdm-7.5.0.GA-decision-central-eap7-deployable.zip)
-- [Red Hat Decision Manager: KIE-Server 7.5.0.GA deployable for EE7](https://developers.redhat.com/download-manager/file/rhdm-7.5.0.GA-kie-server-ee7.zip)
+- [Red Hat Decision Manager 7.7.0.GA Decision Central deployable for EAP 7](https://developers.redhat.com/download-manager/file/rhdm-7.7.0-decision-central-eap7-deployable.zip)
+- [Red Hat Decision Manager: KIE-Server 7.7.0.GA deployable for EE8](https://developers.redhat.com/download-manager/file/rhdm-7.7.0-kie-server-ee8.zip)
 - [7-Zip](http://www.7-zip.org/download.html) (Windows only): to overcome the Windows 260 character path length limit, we need 7-Zip to unzip the Decision Manager deployable.
 
 Option 1 - Install on your machine
@@ -29,7 +29,7 @@ Option 1 - Install on your machine
     ```
     - login for admin and analyst roles (u:dmAdmin / p:redhatdm1!)
     ```
-6. Click on the "loan-application" project to open the Loan Application Demo project.
+6. Import the loan-application project located at https://github.com/jbossdemocentral/rhdm7-loan-demo-repo. Then, click on the "loan-application" project to open the Loan Application Demo project.
 
 7. The project has simple data model (Loan & Applicant) and single decision table (loan-application) which contains the loan approval rule set.
 
@@ -40,7 +40,7 @@ Option 1 - Install on your machine
 10. The Decision Server provides a Swagger UI that documents the full RESTful interface exposed by the server at: http://localhost:8080/kie-server/docs
 
 11. In the Swagger UI:
-   - navigate to "KIE Server :: Core"
+   - navigate to "KIE Server and KIE containers"
    - expand the "GET" operation for resource "/server/containers"
    - click on "Try it out"
    - leave the parameters blank and click on "Execute"
@@ -48,7 +48,7 @@ Option 1 - Install on your machine
    - observe the response, which lists the KIE Containers deployed on the server and their status (STARTED, STOPPED).
 
 12. We can use the Swagger UI to test our Loan Approval Decision Service. In the Swagger UI:
-   - navigate to "Rules evalutation :: BRM"
+   - navigate to "KIE session assets"
    - expand the "POST" operation for resource "/server/containers/instances/{id}"
    - click on "Try it out"
    - set the "id" parameter to the name of the KIE Container that hosts our rules, in this case `loan-application_1.1.0`.
@@ -207,6 +207,7 @@ Released versions
 -----------------
 See the tagged releases for the following versions of the product:
 
+- v1.2 Red Hat Decision Manager 7.7.0 GA
 - v1.1 Red Hat Decision Manager 7.5.0.GA
 - v1.0 Red Hat Decision Manager 7.0.0.GA
 

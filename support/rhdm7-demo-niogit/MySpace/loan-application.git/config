@@ -4,8 +4,10 @@
 	bare = true
 	logallrefupdates = false
 	precomposeunicode = true
+[http]
+	sslVerify = true
 [remote "origin"]
-	url = https://github.com/jbossdemocentral/rhdm7-loan-demo-repo
+	url = https://github.com/jbossdemocentral/rhdm7-loan-demo-repo.git
 	fetch = +refs/heads/*:refs/remotes/origin/*
 	fetch = +refs/tags/*:refs/tags/*
 	fetch = +refs/notes/*:refs/notes/*
