@@ -95,7 +95,7 @@ if (-not ([string]::IsNullOrEmpty($ARG_PROJECT_SUFFIX)))
 
 $PRJ=@("rhdm7-loan-$PRJ_SUFFIX","RHDM7 Loan Demo","Red Hat Decision Manager 7 Loan Demo")
 
-$SCRIPT_DIR=$scriptName = $myInvocation.MyCommand.Path
+$SCRIPT_DIR= Split-Path $myInvocation.MyCommand.Path
 
 # KIE Parameters
 $KIE_ADMIN_USER="dmAdmin"
@@ -246,8 +246,16 @@ Function Create-Rhn-Secret-For-Pull() {
   $RHN_PASSWORD_SECURED = Read-Host "Enter RHN password" -AsSecureString
   $RHN_EMAIL = Read-Host "Enter e-mail address"
 
-  $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($RHN_PASSWORD_SECURED)
-  $RHN_PASSWORD = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+
+  if ($PSVersionTable.PSVersion.Major -ge 7 ) {
+    $RHN_PASSWORD = ConvertFrom-SecureString -SecureString $RHN_PASSWORD_SECURED -AsPlainText
+  }
+  else {
+    $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($RHN_PASSWORD_SECURED)
+    $RHN_PASSWORD = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+  }
+  
+  Write-Output "Password: $RHN_PASSWORD"
 
   oc create secret docker-registry red-hat-container-registry --docker-server=registry.redhat.io --docker-username=$RHN_USERNAME --docker-password=$RHN_PASSWORD --docker-email=$RHN_EMAIL
   oc secrets link builder red-hat-container-registry --for=pull
@@ -255,13 +263,10 @@ Function Create-Rhn-Secret-For-Pull() {
 
 Function Import-Secrets-And-Service-Account() {
   Write-Output-Header "Importing secrets and service account."
-  oc process -f https://raw.githubusercontent.com/jboss-container-images/rhdm-7-openshift-image/$OPENSHIFT_DM7_TEMPLATES_TAG/example-app-secret-template.yaml | oc create -f -
+  oc process -f https://raw.githubusercontent.com/jboss-container-images/rhdm-7-openshift-image/$OPENSHIFT_DM7_TEMPLATES_TAG/example-app-secret-template.yaml -p SECRET_NAME=decisioncentral-app-secret | oc create -f -
   oc process -f https://raw.githubusercontent.com/jboss-container-images/rhdm-7-openshift-image/$OPENSHIFT_DM7_TEMPLATES_TAG/example-app-secret-template.yaml -p SECRET_NAME=kieserver-app-secret | oc create -f -
 
-  Call-Oc "create serviceaccount decisioncentral-service-account" $True "Error creating service account." $True
-  Call-Oc "create serviceaccount kieserver-service-account" $True "Error creating service account." $True
-  Call-Oc "secrets link --for=mount decisioncentral-service-account decisioncentral-app-secret" $True "Error linking decisioncentral-service-account to secret"
-  Call-Oc "secrets link --for=mount kieserver-service-account kieserver-app-secret" $True "Error linking kieserver-service-account to secret"``
+  oc create -f $SCRIPT_DIR/credentials.yaml
 }
 
 Function Create-Application() {
@@ -276,12 +281,7 @@ Function Create-Application() {
   $argList = "new-app --template=rhdm$DM7_VERSION-authoring"`
       + " -p APPLICATION_NAME=""$ARG_DEMO""" `
       + " -p IMAGE_STREAM_NAMESPACE=""$IMAGE_STREAM_NAMESPACE""" `
-      + " -p KIE_ADMIN_USER=""$KIE_ADMIN_USER""" `
-      + " -p KIE_ADMIN_PWD=""$KIE_ADMIN_PWD""" `
-      + " -p KIE_SERVER_CONTROLLER_USER=""$KIE_SERVER_CONTROLLER_USER""" `
-      + " -p KIE_SERVER_CONTROLLER_PWD=""$KIE_SERVER_CONTROLLER_PWD""" `
-      + " -p KIE_SERVER_USER=""$KIE_SERVER_USER""" `
-      + " -p KIE_SERVER_PWD=""$KIE_SERVER_PWD""" `
+      + " -p CREDENTIALS_SECRET=""rhdm-credentials""" `
       + " -p DECISION_CENTRAL_HTTPS_SECRET=""decisioncentral-app-secret""" `
       + " -p KIE_SERVER_HTTPS_SECRET=""kieserver-app-secret""" `
       + " -p DECISION_CENTRAL_MEMORY_LIMIT=""2Gi"""
