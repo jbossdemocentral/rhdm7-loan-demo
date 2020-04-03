@@ -254,8 +254,6 @@ Function Create-Rhn-Secret-For-Pull() {
     $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($RHN_PASSWORD_SECURED)
     $RHN_PASSWORD = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
   }
-  
-  Write-Output "Password: $RHN_PASSWORD"
 
   oc create secret docker-registry red-hat-container-registry --docker-server=registry.redhat.io --docker-username=$RHN_USERNAME --docker-password=$RHN_PASSWORD --docker-email=$RHN_EMAIL
   oc secrets link builder red-hat-container-registry --for=pull
