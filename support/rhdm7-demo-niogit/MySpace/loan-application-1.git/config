@@ -1,0 +1,16 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = true
+	logallrefupdates = false
+	precomposeunicode = true
+[http]
+	sslVerify = true
+[remote "origin"]
+	url = /Users/kvarela/projetos/contrib/demo/rhdm7-loan-demo-repo
+	fetch = +refs/heads/*:refs/remotes/origin/*
+	fetch = +refs/tags/*:refs/tags/*
+	fetch = +refs/notes/*:refs/notes/*
+[branch "master"]
+	remote = origin
+	merge = refs/heads/master

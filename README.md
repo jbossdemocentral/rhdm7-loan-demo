@@ -6,17 +6,17 @@ using it from an application through the REST API that is exposed by the server.
 
 There are three options for you to install this project: local, OpenShift and Docker
 
-Software
---------
+## Software
+
 The following software is required to run this demo:
-- [JBoss EAP 7.2 zip](https://developers.redhat.com/download-manager/file/jboss-eap-7.2.0.zip)
-- [Red Hat Decision Manager 7.7.0.GA Decision Central deployable for EAP 7](https://developers.redhat.com/download-manager/file/rhdm-7.7.0-decision-central-eap7-deployable.zip)
-- [Red Hat Decision Manager: KIE-Server 7.7.0.GA deployable for EE8](https://developers.redhat.com/download-manager/file/rhdm-7.7.0-kie-server-ee8.zip)
+- [JBoss EAP 7.3 zip](https://developers.redhat.com/download-manager/file/jboss-eap-7.3.0.zip)
+- [Red Hat Decision Manager 7.8.0.GA Decision Central deployable for EAP 7](https://developers.redhat.com/download-manager/file/rhdm-7.7.0-decision-central-eap7-deployable.zip)
+- [Red Hat Decision Manager: KIE-Server 7.8.0.GA deployable for EE8](https://developers.redhat.com/download-manager/file/rhdm-7.8.0-kie-server-ee8.zip)
 - [7-Zip](http://www.7-zip.org/download.html) (Windows only): to overcome the Windows 260 character path length limit, we need 7-Zip to unzip the Decision Manager deployable.
 
-Option 1 - Install on your machine
-----------------------------------
-1. [Download and unzip.](https://github.com/jbossdemocentral/rhdm7-loan-demo/archive/master.zip) or [clone this repo](https://github.com/jbossdemocentral/rhdm7-loan-demo.git).
+## Install and run on your machine
+
+1. [Download and unzip](https://github.com/jbossdemocentral/rhdm7-loan-demo/archive/master.zip) or [clone this repo](https://github.com/jbossdemocentral/rhdm7-loan-demo.git).
 
 2. Add the product ZIP files to the installs directory.
 
@@ -29,17 +29,22 @@ Option 1 - Install on your machine
     ```
     - login for admin and analyst roles (u:dmAdmin / p:redhatdm1!)
     ```
-6. Import the loan-application project located at https://github.com/jbossdemocentral/rhdm7-loan-demo-repo. Then, click on the "loan-application" project to open the Loan Application Demo project.
 
-7. The project has simple data model (Loan & Applicant) and single decision table (loan-application) which contains the loan approval rule set.
+## Running the demo
 
-8. Build and deploy version 1.1.0 of the project. Click on the "Build and Deploy" in the upper right corner.
+1. You should already see the loan-application. If not, you can import it from https://github.com/jbossdemocentral/rhdm7-loan-demo-repo. 
 
-9. Go to "Menu -> Deploy -> Execution Servers" repository to see the loan-application_1.1.0 KIE Container deployed on the Decision Server.
+7. Click on the "loan-application" project to open the Loan Application Demo project.
 
-10. The Decision Server provides a Swagger UI that documents the full RESTful interface exposed by the server at: http://localhost:8080/kie-server/docs
+8. The project has simple some data model (Loan, Applicant, Reservation), a single decision table (loan-application) which contains the loan approval rule set and a DMN model (reservation) that provides a recomendation based on the credit score.
 
-11. In the Swagger UI:
+9. Build and deploy version 1.2.0 of the project. Click on the "Build and Deploy" in the upper right corner.
+
+10. Go to "Menu -> Deploy -> Execution Servers" repository to see the loan-application_1.2.0 KIE Container deployed on the Decision Server.
+
+11. The Decision Server provides a Swagger UI that documents the full RESTful interface exposed by the server at: http://localhost:8080/kie-server/docs
+
+12. In the Swagger UI:
    - navigate to "KIE Server and KIE containers"
    - expand the "GET" operation for resource "/server/containers"
    - click on "Try it out"
@@ -47,63 +52,95 @@ Option 1 - Install on your machine
    - when asked for credentials use: Username: kieserver, Password: kieserver1!
    - observe the response, which lists the KIE Containers deployed on the server and their status (STARTED, STOPPED).
 
-12. We can use the Swagger UI to test our Loan Approval Decision Service. In the Swagger UI:
-   - navigate to "KIE session assets"
-   - expand the "POST" operation for resource "/server/containers/instances/{id}"
-   - click on "Try it out"
-   - set the "id" parameter to the name of the KIE Container that hosts our rules, in this case `loan-application_1.1.0`.
-   - set "Parameter content type" to `application/json`.
-   - set "Response content type" to `application/json`
-   - use the following request as the "body" parameter. Note that the `Loan` object has its `approved` attribute set to `false`:
+12. We can use the Swagger UI to test our Loan Approval Decision Service. In the Swagger UI.
 
-    {
-            "lookup": "default-stateless-ksession",
-            "commands": [
-                    {
-                            "insert": {
-                                    "object": {
-                                            "com.redhat.demos.dm.loan.model.Applicant": {
-                                                    "creditScore": 230,
-                                                    "name": "Jim Whitehurst"
-                                            }
-                                    },
-                                    "out-identifier": "applicant"
-                            }
-                    },
-                    {
-                            "insert": {
-                                    "object": {
-                                            "com.redhat.demos.dm.loan.model.Loan": {
-                                                    "amount": 2500,
-                                                    "approved": false,
-                                                    "duration": 24,
-                                                    "interestRate": 1.5
-                                            }
-                                    },
-                                    "out-identifier": "loan"
-                            }
-                    },
-                    {
-                            "fire-all-rules": {}
-                    },
-                    {
-                            "get-objects": {
-                                    "out-identifier": "objects"
-                            }
-                    },
-                    {
-                            "dispose": {}
-                    }
-            ]
-    }
+### Consuming the decision services via REST:
 
+#### **Testing the decisions implemented with DMN:**
 
-   - observe the result. The Loan Application rules have fired and determined that, based on the credit score of the application, and the amount of the loan, the loan can be approved. The `approved` attribute of the `Loan` has been set to `true`.
+To test the rule execution on the kieserver:
 
-13. You can change the decision table as desired, change the version of the project, and redeploy a new version to a new KIE Container (allowing you to serve multiple versions of the same rule set at the same time on the same Decision Server). You can also build a new version of the project and use the Version Configuration tab of the container definition (in the Execution Servers screen) to manage the container using the UPGRADE button to pull the new version.
+1. Open the Swagger UI : `http://localhost:8080/kie-server/docs`
+2. In the KIE Server Swagger UI, navigate to the "DMN Assets" section and locate the POST "/server/containers/{containerId}/dmn" item.
+   1. ContainerID: loan-application_1.2.0
+   2. Change the "Parameter content type" and the "response content type" to "application/json"
+   3. Body:
+```
+{ 
+  "model-namespace" : "https://kiegroup.org/dmn/_C159F266-40FF-49CB-B4D9-447DFACDDC16", 
+  "model-name" : "recommendation", 
+  "decision-name" : [ ], 
+  "decision-id" : [ ], 
+  "dmn-context" : {"Credit Score": 250}
+}
+```
 
+#### **Testing the business rules implemented with the guided decision table:**
 
-Option 2 - Run on OpenShift
+To test the rule execution on the kieserver:
+
+1. Open Swagger : `http://localhost:8080/kie-server/docs`
+2. To send a request to the Decision Service, navigate to "KIE session assets", and search for POST "/server/containers/instances/{containerId}". 	 
+   3. Insert for container **id**: `loan-application_1.2.0`
+   2. Change the "Parameter content-type" and "Response content type" to "application/json";
+   3. And use the following payload for **body**:
+```
+{
+	"lookup": "default-stateless-ksession",
+	"commands": [
+		{
+			"insert": {
+				"object": {
+					"com.redhat.demos.dm.loan.model.Applicant": {
+						"creditScore": 120,
+						"name": "Jim Whitehurst"
+					}
+				},
+				"out-identifier": "applicant"
+			}
+		},
+		{
+			"insert": {
+				"object": {
+					"com.redhat.demos.dm.loan.model.Loan": {
+						"amount": 2500,
+						"approved": false,
+						"duration": 24,
+						"interestRate": 1.5
+					}
+				},
+				"out-identifier": "loan"
+			}
+		},
+		{
+			"fire-all-rules": {}
+		},
+		{
+			"get-objects": {
+				"out-identifier": "objects"
+			}
+		},
+		{
+			"dispose": {}
+		}
+	]
+}
+```
+
+--------
+### Expanding:
+
+In both cases observe the results. The Loan Application rules have fired and determined that, based on the credit score of the application, and the amount of the loan, the loan can be approved. The `approved` attribute of the `Loan` has been set to `true`.
+
+Exercise by changing the decision table as desired, change the version of the project, and redeploy a new version to a new KIE Container (allowing you to serve multiple versions of the same rule set at the same time on the same Decision Server). You can also build a new version of the project and use the Version Configuration tab of the container definition (in the Execution Servers screen) to manage the container using the UPGRADE button to pull the new version.
+
+----------
+
+# Extra installation **options**
+
+**NOTE**: The installation options below are currently set to install Red Hat DM 7.7.
+
+Option 2 - Run on OpenShift 
 -----------------------------------------
 This demo can be installed on Red Hat OpenShift in various ways. We'll explain the different options provided.
 
@@ -177,8 +214,6 @@ the user a bit more control how to provision to OpenShift.
 
 7. After provisioning, follow the instructions from above "Option 2 - Automated installation, manual project import", starting at step 2.
 
-
-
 Option 3 - Run in Docker
 -----------------------------------------
 The following steps can be used to configure and run the demo in a container
@@ -207,6 +242,7 @@ Released versions
 -----------------
 See the tagged releases for the following versions of the product:
 
+- v1.3 Red Hat Decision Manager 7.8.0 GA
 - v1.2 Red Hat Decision Manager 7.7.0 GA
 - v1.1 Red Hat Decision Manager 7.5.0.GA
 - v1.0 Red Hat Decision Manager 7.0.0.GA
@@ -226,3 +262,7 @@ See the tagged releases for the following versions of the product:
 ![Swagger UI Rules Request](./docs/demo-images/kie-server-swagger-ui-rules-request.png)
 
 ![Swagger UI Rules Response](./docs/demo-images/kie-server-swagger-ui-rules-response.png)
+
+![Swagger UI DMN Request](./docs/demo-images/kie-server-swagger-ui-dmn-request.png)
+
+![Swagger UI DMN Response](./docs/demo-images/kie-server-swagger-ui-dmn-response.png)
