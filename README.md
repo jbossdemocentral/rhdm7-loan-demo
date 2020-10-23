@@ -9,14 +9,14 @@ There are three options for you to install this project: local, OpenShift and Do
 ## Software
 
 The following software is required to run this demo:
-- [JBoss EAP 7.2 zip](https://developers.redhat.com/download-manager/file/jboss-eap-7.3.0.zip)
+- [JBoss EAP 7.3 zip](https://developers.redhat.com/download-manager/file/jboss-eap-7.3.0.zip)
 - [Red Hat Decision Manager 7.8.0.GA Decision Central deployable for EAP 7](https://developers.redhat.com/download-manager/file/rhdm-7.7.0-decision-central-eap7-deployable.zip)
 - [Red Hat Decision Manager: KIE-Server 7.8.0.GA deployable for EE8](https://developers.redhat.com/download-manager/file/rhdm-7.8.0-kie-server-ee8.zip)
 - [7-Zip](http://www.7-zip.org/download.html) (Windows only): to overcome the Windows 260 character path length limit, we need 7-Zip to unzip the Decision Manager deployable.
 
-## Install on your machine
+## Install and run on your machine
 
-2. 1. [Download and unzip.](https://github.com/jbossdemocentral/rhdm7-loan-demo/archive/master.zip) or [clone this repo](https://github.com/jbossdemocentral/rhdm7-loan-demo.git).
+1. [Download and unzip](https://github.com/jbossdemocentral/rhdm7-loan-demo/archive/master.zip) or [clone this repo](https://github.com/jbossdemocentral/rhdm7-loan-demo.git).
 
 2. Add the product ZIP files to the installs directory.
 
@@ -32,7 +32,7 @@ The following software is required to run this demo:
 
 ## Running the demo
 
-6. You should already see the loan-application. If not, you can import it from https://github.com/jbossdemocentral/rhdm7-loan-demo-repo. 
+1. You should already see the loan-application. If not, you can import it from https://github.com/jbossdemocentral/rhdm7-loan-demo-repo. 
 
 7. Click on the "loan-application" project to open the Loan Application Demo project.
 
@@ -262,3 +262,7 @@ See the tagged releases for the following versions of the product:
 ![Swagger UI Rules Request](./docs/demo-images/kie-server-swagger-ui-rules-request.png)
 
 ![Swagger UI Rules Response](./docs/demo-images/kie-server-swagger-ui-rules-response.png)
+
+![Swagger UI DMN Request](./docs/demo-images/kie-server-swagger-ui-dmn-request.png)
+
+![Swagger UI DMN Response](./docs/demo-images/kie-server-swagger-ui-dmn-response.png)
